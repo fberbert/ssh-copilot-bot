@@ -1,0 +1,8 @@
+.env
+__pycache__/
+
+# pasta do ambiente virtual
+venv
+
+# arquivos de configuração do bot
+bot_state.json
