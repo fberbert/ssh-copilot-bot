@@ -1,0 +1,15 @@
+[Unit]
+Description=Bot de Infraestrutura do Telegram Aivis
+After=network.target
+
+[Service]
+User=fabio
+Group=fabio
+WorkingDirectory=/home/fabio/projetos/telegram-infra-bot
+ExecStart=/home/fabio/projetos/telegram-infra-bot/venv/bin/python /home/fabio/projetos/telegram-infra-bot/infra-bot.py
+Restart=on-failure
+Environment=PYTHONUNBUFFERED=1
+
+[Install]
+WantedBy=multi-user.target
+
