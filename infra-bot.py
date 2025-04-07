@@ -129,8 +129,12 @@ def rodar_comando(chat_id: int, comando: str):
     logger.info(f"Executando comando '{comando}' no servidor {ip} ({user}@{ip}:{port})")
     ssh_cmd = (
         f"ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null "
-        f"-i {KEY_FILE} {user}@{ip} -p {port} '{safe_cmd}'"
+        f"{user}@{ip} -p {port} '{safe_cmd}'"
     )
+        # não há a necessidade do arquivo KEY_FILE, visto que o ssh
+        # é executado usando a chave pública padrão do usuário que 
+        # está executando o bot (~/.ssh/id_rsa)
+        # f"-i {KEY_FILE} {user}@{ip} -p {port} '{safe_cmd}'"
 
     try:
         saida = subprocess.check_output(ssh_cmd, shell=True, text=True)
