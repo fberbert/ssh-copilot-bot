@@ -347,8 +347,8 @@ async def server_info_command(update: Update, context: ContextTypes.DEFAULT_TYPE
         server_info = CONFIG["servers"][cid_str]
         info_text = (
             "Server configuration for this chat:\n"
-            f"IP: <b>{server_info.get('ip', 'N/A')}</b><br>\n"
-            f"Port: <b>{server_info.get('port', 'N/A')}</b><br>\n"
+            f"IP: <b>{server_info.get('ip', 'N/A')}</b>\n"
+            f"Port: <b>{server_info.get('port', 'N/A')}</b>\n"
             f"User: <b>{server_info.get('user', 'N/A')}</b>\n"
         )
     else:
