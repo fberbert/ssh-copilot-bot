@@ -3,3 +3,4 @@ python-dotenv
 APScheduler
 openai
 bleach
+asyncssh

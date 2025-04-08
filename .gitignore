@@ -7,4 +7,6 @@ venv
 
 # arquivos de configuração do bot
 bot_state.json
+bot_key.json
 bot_config.json
+filtros.txt
