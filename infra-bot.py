@@ -236,9 +236,9 @@ async def async_rodar_comando(chat_id: int, comando: str) -> str:
 # ================
 # Relatórios
 # ================
-async def gerar_relatorio_humanizado():
+async def gerar_relatorio_humanizado(cid) -> str:
     # Aqui estamos assumindo que o REPORT_CHAT_ID terá um servidor configurado e selecionado
-    cid = int(REPORT_CHAT_ID)
+    # cid = int(REPORT_CHAT_ID)
     output_df = await async_rodar_comando(cid, "df -h")
     output_backups = await async_rodar_comando(cid, "/home/fabio/bin/listar-backups")
     output_snaps = await async_rodar_comando(cid, "/home/fabio/bin/listar-snapshots")
@@ -261,14 +261,14 @@ async def gerar_relatorio_humanizado():
     return answer
 
 def job_enviar_relatorio(app):
-    text = gerar_relatorio_humanizado()
+    text = gerar_relatorio_humanizado(REPORT_CHAT_ID)
     logger.info("Enviando relatório diário para o chat %s", REPORT_CHAT_ID)
     logger.info("Conteúdo do relatório:\n%s", text)
     app.bot.send_message(chat_id=REPORT_CHAT_ID, text=text, parse_mode="HTML")
 
 async def command_enviar_relatorio(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    text = await asyncio.to_thread(gerar_relatorio_humanizado)
-    logger.info("Enviando relatório diário para o chat %s", REPORT_CHAT_ID)
+    text = await asyncio.to_thread(gerar_relatorio_humanizado(update.effective_chat.id))
+    logger.info("Enviando relatório diário para o chat %s", update.effective_chat.id)
     logger.info("Conteúdo do relatório:\n%s", text)
     await update.message.reply_text(sanitize_html(text), parse_mode="HTML", disable_web_page_preview=True)
     await turn_on_talking(update, context)

@@ -1,8 +1,8 @@
-# Telegram Infra Bot
+# SSH Copilot Bot
 
-Este projeto é um bot de suporte à infraestrutura que lê e responde mensagens do Telegram. O bot utiliza a API de Threads da OpenAI para interações avançadas e permite a execução segura de comandos em servidores remotos via SSH, retornando a saída dos comandos formatada para profissionais de TI.
+Este projeto é um bot de suporte à infraestrutura chamado **ssh-copilot-bot**, utilizado para gerenciamento de servidores Linux via SSH diretamente pelo Telegram. Ele utiliza a API de Threads da OpenAI para manter interações contextuais e permite a execução segura de comandos remotos, retornando saídas formatadas com foco em profissionais de TI.
 
-O projeto utiliza um ambiente virtual Python, possui um arquivo `requirements.txt` com as dependências e inclui um template para o arquivo de serviço systemd para facilitar a execução como um serviço no Ubuntu.
+O projeto é baseado em Python, usa ambiente virtual, depende das bibliotecas listadas em `requirements.txt` e possui um template para ser executado como serviço no Ubuntu via systemd.
 
 ## Sumário
 
@@ -10,6 +10,7 @@ O projeto utiliza um ambiente virtual Python, possui um arquivo `requirements.tx
 - [Requisitos](#requisitos)
 - [Instalação](#instalação)
 - [Configuração](#configuração)
+- [Comandos Disponíveis](#comandos-disponíveis)
 - [Execução do Bot](#execução-do-bot)
 - [Instalação como Serviço](#instalação-como-serviço)
 - [Personalização](#personalização)
@@ -19,10 +20,10 @@ O projeto utiliza um ambiente virtual Python, possui um arquivo `requirements.tx
 
 - Integração com a API de Threads da OpenAI para manter diálogos contextuais.
 - Execução segura de comandos em servidores remotos via SSH (sem uso de `sudo`).
-- Formatação da saída dos comandos através de prompts enviados para o assistente, com foco em profissionais de TI.
+- Formatação da saída dos comandos com foco técnico (HTML para Telegram).
 - Persistência de estado (threads e modo de conversa) em arquivo JSON.
-- Modo de conversa que pode ser ativado automaticamente em grupos (por meio de menção ou padrão) ou em chats privados.
-- Comandos de autorização e configuração para gerenciar usuários, grupos e dados de acesso ao servidor.
+- Comandos de configuração e autorização para controle granular de acesso.
+- Suporte a múltiplos servidores por chat, com seleção ativa.
 
 ## Requisitos
 
@@ -38,7 +39,7 @@ O projeto utiliza um ambiente virtual Python, possui um arquivo `requirements.tx
 
    ```bash
    git clone <URL_DO_REPOSITORIO>
-   cd telegram-infra-bot
+   cd ssh-copilot-bot
    ```
 
 2. **Crie o ambiente virtual:**
@@ -59,12 +60,11 @@ O projeto utiliza um ambiente virtual Python, possui um arquivo `requirements.tx
    pip install -r requirements.txt
    ```
 
-5. **Configuração das variáveis de ambiente:**
+5. **Configure as variáveis de ambiente:**
 
-   Crie um arquivo chamado `.env` na raiz do projeto (você pode usar o arquivo `env.sample` como exemplo) e preencha as variáveis conforme necessário:
+   Crie um arquivo `.env` com base no modelo `env.sample`:
 
    ```env
-   # Exemplo de .env
    ADMIN_USER=@vivaolinux
    BOT_TOKEN=seu_token_do_bot
    REPORT_CHAT_ID=id_do_chat_de_reporte
@@ -72,63 +72,76 @@ O projeto utiliza um ambiente virtual Python, possui um arquivo `requirements.tx
    ASSISTANT_ID=seu_assistant_id
    ```
 
+6. **Crie o arquivo com a chave pública:**
+
+   Gere uma chave pública (caso ainda não tenha):
+
+   ```bash
+   ssh-keygen -t rsa -b 4096 -C "seu_email@dominio.com"
+   cat ~/.ssh/id_rsa.pub > bot_key.pub
+   ```
+
+   O arquivo `bot_key.pub` deve estar na raiz do projeto. Ele será mostrado aos usuários para ser adicionado ao servidor remoto.
+
 ## Configuração
 
-- **Estado e Persistência:**  
-  O bot salva informações de estado (threads e modo de conversa) no arquivo `bot_state.json` e a configuração do bot (usuários, grupos autorizados e dados de acesso ao servidor) no arquivo `bot_config.json`, ambos no diretório do projeto. Verifique se o usuário que executa o bot possui permissões de leitura e escrita nesses arquivos.
+- **Persistência:**
+  - `bot_state.json`: mantém o estado das conversas e threads.
+  - `bot_config.json`: armazena usuários, grupos e servidores configurados para cada chat.
 
-- **Configuração do Servidor:**  
-  Antes de usar o bot para executar comandos, configure os dados de acesso ao servidor para o chat ou usuário com os comandos:
-  
-  - `/set_server ip=1.2.3.4 port=22 user=ubuntu`
-  - `/set_pubkey <conteúdo_da_chave_pública>`
+- **Servidor:**
+  Para configurar um servidor no chat:
 
-  **Dica:**  
-  Para gerar uma chave pública em um servidor Linux, execute:
-  ```bash
-  ssh-keygen -t rsa -b 4096 -C "seu_email@dominio.com"
   ```
-  Aceite os valores padrão e depois use:
-  ```bash
-  cat ~/.ssh/id_rsa.pub
+  /set_server ip=1.2.3.4 port=22 user=ubuntu name=MeuServidor
   ```
-  Copie o conteúdo exibido e use no comando `/set_pubkey`.
 
-- **Autorização:**  
-  Se o usuário ou grupo não estiver autorizado (configurado em `bot_config.json`), o bot responderá solicitando que o acesso seja concedido entrando em contato com o administrador (ADMIN_USER) e informando o ID do chat/usuário.
+  Após configurar, adicione a chave pública (`bot_key.pub`) ao arquivo `~/.ssh/authorized_keys` do servidor remoto.
+
+## Comandos Disponíveis
+
+- `/help` — Mostra a ajuda geral com explicações.
+- `/start` — Alias para `/help`.
+- `/relatorio` — Gera um relatório completo do servidor selecionado.
+- `/set_server` — Adiciona um novo servidor ao chat com nome, IP, porta e usuário.
+- `/list_servers` — Lista todos os servidores configurados e indica o servidor selecionado.
+- `/select_server NomeServidor` — Define qual servidor será usado nas execuções.
+- `/server_info` — Mostra todos os servidores ou, se for passado um nome, os detalhes daquele servidor.
+- `/edit_server NomeServidor ip=... port=... user=...` — Edita a configuração de um servidor.
+- `/delete_server NomeServidor` — Remove um servidor e atualiza o selecionado, se necessário.
+- `/grant_user user_id` — (ADMIN) Autoriza um usuário individual.
+- `/revoke_user user_id` — (ADMIN) Remove autorização de um usuário.
+- `/grant_group group_id` — (ADMIN) Autoriza um grupo.
+- `/revoke_group group_id` — (ADMIN) Remove autorização de um grupo.
 
 ## Execução do Bot
 
-Para executar o bot manualmente com o ambiente virtual ativado:
+Para executar o bot manualmente:
 
 ```bash
 venv/bin/python infra-bot.py
 ```
 
-O bot se conectará ao Telegram e ficará aguardando mensagens conforme a lógica implementada.
-
 ## Instalação como Serviço
 
-Para executar o bot como um serviço no Ubuntu:
-
-1. **Copie o template do arquivo de serviço:**
+1. **Copie o template do serviço:**
 
    ```bash
-   sudo cp telegram-infra-bot.service /etc/systemd/system/telegram-infra-bot.service
+   sudo cp ssh-copilot-bot.service /etc/systemd/system/ssh-copilot-bot.service
    ```
 
-2. **Edite o arquivo de serviço**, se necessário, garantindo que o `WorkingDirectory` e o caminho do interpretador Python apontem para o diretório do projeto e para o ambiente virtual, respectivamente. Exemplo:
+2. **Edite o serviço:**
 
    ```ini
    [Unit]
-   Description=Bot de Infraestrutura do Telegram
+   Description=Bot SSH Copilot
    After=network.target
 
    [Service]
    User=fabio
    Group=fabio
-   WorkingDirectory=/home/fabio/projetos/telegram-infra-bot
-   ExecStart=/home/fabio/projetos/telegram-infra-bot/venv/bin/python /home/fabio/projetos/telegram-infra-bot/infra-bot.py
+   WorkingDirectory=/home/fabio/projetos/ssh-copilot-bot
+   ExecStart=/home/fabio/projetos/ssh-copilot-bot/venv/bin/python /home/fabio/projetos/ssh-copilot-bot/infra-bot.py
    Restart=on-failure
    Environment=PYTHONUNBUFFERED=1
 
@@ -136,34 +149,33 @@ Para executar o bot como um serviço no Ubuntu:
    WantedBy=multi-user.target
    ```
 
-3. **Recarregue e inicie o serviço:**
+3. **Ative o serviço:**
 
    ```bash
    sudo systemctl daemon-reload
-   sudo systemctl enable telegram-infra-bot.service
-   sudo systemctl start telegram-infra-bot.service
+   sudo systemctl enable ssh-copilot-bot.service
+   sudo systemctl start ssh-copilot-bot.service
    ```
 
-4. **Verifique o status:**
+4. **Verifique os logs:**
 
    ```bash
-   sudo systemctl status telegram-infra-bot.service
+   sudo journalctl -u ssh-copilot-bot.service -f
    ```
 
 ## Personalização
 
-- **Mensagens e Comandos:**  
-  Você pode alterar os prompts, comandos e lógica de autorização editando o arquivo `infra-bot.py`.
+- **Mensagens e Comandos:**
+  Modifique o arquivo `infra-bot.py` conforme sua necessidade.
 
-- **Formato das Respostas:**  
-  As respostas são enviadas com formatação Markdown. Caso queira ajustar, modifique os parâmetros de envio das mensagens no código.
+- **Formatação HTML:**
+  O bot envia mensagens formatadas para o Telegram via HTML simples (`<b>`, `<i>`, `<code>`, etc). Você pode ajustar os blocos de resposta no código-fonte.
 
 ## Licença
 
-Este projeto é distribuído sob a [Licença MIT](LICENSE).
+Distribuído sob a [Licença MIT](LICENSE).
 
 ---
 
-Siga estas instruções para instalar, configurar e executar o bot. Em caso de dúvidas ou problemas, verifique os logs do serviço (por exemplo, usando `journalctl -u telegram-infra-bot.service`).
+Siga estas instruções para instalar, configurar e operar o ssh-copilot-bot. Em caso de dúvidas, envie logs ou mensagens para o administrador do bot. Bom uso!
 
-Boa sorte e aproveite!
