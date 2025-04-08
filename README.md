@@ -132,6 +132,8 @@ venv/bin/python infra-bot.py
 
 2. **Edite o serviço:**
 
+Altere o nome do usuário e o caminho do diretório de trabalho no arquivo `/etc/systemd/system/ssh-copilot-bot.service`:
+
    ```ini
    [Unit]
    Description=Bot SSH Copilot
@@ -139,7 +141,7 @@ venv/bin/python infra-bot.py
 
    [Service]
    User=fabio
-   Group=fabio
+   Group=sudo
    WorkingDirectory=/home/fabio/projetos/ssh-copilot-bot
    ExecStart=/home/fabio/projetos/ssh-copilot-bot/venv/bin/python /home/fabio/projetos/ssh-copilot-bot/infra-bot.py
    Restart=on-failure
