@@ -141,11 +141,27 @@ def find_or_create_thread(chat_id: int) -> str:
     save_state()
     return thread_id
 
+def wait_for_run_to_finish(thread_id: str, timeout: int = 60):
+    import time
+    start = time.time()
+    while time.time() - start < timeout:
+        # Lista os runs da thread, pega o mais recente
+        runs = openai.beta.threads.runs.list(thread_id=thread_id).data
+        if runs:
+            latest_run = runs[0]
+            if latest_run.status not in ["queued", "in_progress"]:
+                return
+        time.sleep(1)
+    raise TimeoutError("Timeout esperando a finalização do run ativo.")
+
+
 def send_message_to_thread(thread_id, role, content):
     """
     Envia uma mensagem à thread. Se o conteúdo exceder 256000 caracteres,
-    divide em partes e envia sequencialmente.
+    divide em partes e envia sequencialmente. Aguarda a finalização de runs ativos.
     """
+    wait_for_run_to_finish(thread_id)
+
     max_length = 256000
     responses = []
     if len(content) > max_length:
@@ -157,7 +173,7 @@ def send_message_to_thread(thread_id, role, content):
                 content=part
             )
             responses.append(resp)
-        return responses[-1]  # Retorna a última resposta para continuidade
+        return responses[-1]
     else:
         resp = openai.beta.threads.messages.create(
             thread_id=thread_id,
@@ -165,6 +181,7 @@ def send_message_to_thread(thread_id, role, content):
             content=content
         )
         return resp
+
 
 def run_assistant(thread_id):
     resp = openai.beta.threads.runs.create(thread_id, assistant_id=ASSISTANT_ID)
@@ -225,7 +242,8 @@ async def async_rodar_comando(chat_id: int, comando: str) -> str:
 
     # Escape de aspas simples
     safe_cmd = comando.replace("'", "'\"'\"'")
-    logger.info(f"Executando comando '{comando}' no servidor {ip} ({user}@{ip}:{port}) via AsyncSSH")
+    logger.info(f"Executando comando '{safe_cmd}' no servidor {ip} ({user}@{ip}:{port}) via AsyncSSH")
+    logger.info(f"Comando original: {comando}")
     try:
         async with asyncssh.connect(ip, port=port, username=user, known_hosts=None) as conn:
             result = await conn.run(safe_cmd, check=True)
