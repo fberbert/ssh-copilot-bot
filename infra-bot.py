@@ -241,7 +241,8 @@ async def async_rodar_comando(chat_id: int, comando: str) -> str:
     user = server_info["user"]
 
     # Escape de aspas simples
-    safe_cmd = comando.replace("'", "'\"'\"'")
+    # safe_cmd = comando.replace("'", "'\"'\"'")
+    safe_cmd = comando
     logger.info(f"Executando comando '{safe_cmd}' no servidor {ip} ({user}@{ip}:{port}) via AsyncSSH")
     logger.info(f"Comando original: {comando}")
     try:
