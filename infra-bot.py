@@ -8,6 +8,7 @@ import asyncio
 import json
 import bleach
 import asyncssh
+import asyncio, concurrent.futures
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -132,6 +133,7 @@ def split_into_chunks(text: str, chunk_size: int = 4096) -> list[str]:
 # OpenAI: criação e manipulação de threads e mensagens
 # ================
 def find_or_create_thread(chat_id: int) -> str:
+    logger.info("Procurando thread para o chat_id %s", chat_id)
     cid_str = str(chat_id)
     if cid_str in DATA["threads"]:
         return DATA["threads"][cid_str]
@@ -141,18 +143,25 @@ def find_or_create_thread(chat_id: int) -> str:
     save_state()
     return thread_id
 
+
 def wait_for_run_to_finish(thread_id: str, timeout: int = 60):
+    """Bloqueia só enquanto existir um run em 'queued' ou 'in_progress'."""
     import time
     start = time.time()
     while time.time() - start < timeout:
-        # Lista os runs da thread, pega o mais recente
         runs = openai.beta.threads.runs.list(thread_id=thread_id).data
-        if runs:
-            latest_run = runs[0]
-            if latest_run.status not in ["queued", "in_progress"]:
-                return
+
+        # ➊ Nenhum run ainda: podemos enviar a mensagem sem esperar.
+        if not runs:
+            return
+
+        latest = runs[0]
+        if latest.status not in ("queued", "in_progress"):
+            return                          # ➋ Último run já terminou.
+
         time.sleep(1)
-    raise TimeoutError("Timeout esperando a finalização do run ativo.")
+
+    raise TimeoutError("Timeout aguardando a finalização do run ativo.")
 
 
 def send_message_to_thread(thread_id, role, content):
@@ -774,7 +783,21 @@ async def handle_any_message(update: Update, context: ContextTypes.DEFAULT_TYPE)
 def main() -> None:
     load_state()
     load_config()
-    application = Application.builder().token(BOT_TOKEN).build()
+
+    # pool de threads maior para chamadas OpenAI/IO (opcional)
+    thread_pool = concurrent.futures.ThreadPoolExecutor(max_workers=20)
+
+    loop = asyncio.new_event_loop()
+    asyncio.set_event_loop(loop)
+    loop.set_default_executor(thread_pool)
+
+    # Criação do bot
+    application = (
+        Application.builder()
+        .token(BOT_TOKEN)
+        .concurrent_updates(True)      # ← permite vários updates simultâneos
+        .build()
+    )
 
     # Agendando relatório diário (05:07 AM)
     scheduler = BackgroundScheduler()
