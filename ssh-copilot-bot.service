@@ -3,10 +3,10 @@ Description=Bot SSH Copilot
 After=network.target
 
 [Service]
-User=fabio
-Group=sudo
-WorkingDirectory=/home/fabio/projetos/ssh-copilot-bot
-ExecStart=/home/fabio/projetos/ssh-copilot-bot/venv/bin/python /home/fabio/projetos/ssh-copilot-bot/infra-bot.py
+User=your_user         # replace with the system user that will run the bot
+Group=your_group       # replace with the group for the bot user
+WorkingDirectory=/path/to/ssh-copilot-bot
+ExecStart=/path/to/ssh-copilot-bot/venv/bin/python /path/to/ssh-copilot-bot/infra-bot.py
 Restart=on-failure
 Environment=PYTHONUNBUFFERED=1
 
