@@ -592,7 +592,7 @@ async def select_server_command(update: Update, context: ContextTypes.DEFAULT_TY
 # ================
 # Authorization commands (ADMIN)
 # ================
-async def grant_user(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+async def grant(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     if update.effective_user.username != ADMIN_USER:
         await update.message.reply_text(
             f"Only the administrator ({ADMIN_USER}) can execute this command."
@@ -600,27 +600,41 @@ async def grant_user(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None
         return
     args = update.message.text.split()
     if len(args) < 2:
-        await update.message.reply_text("Usage: /grant_user <user_id>")
+        await update.message.reply_text("Usage: /grant <id>")
         return
     try:
-        user_id = int(args[1])
+        target_id = int(args[1])
     except:
         await update.message.reply_text(
-            "Invalid ID. Example: /grant_user 12345"
+            "Invalid ID. Example: /grant 12345 or /grant -1001234567890"
         )
         return
-    if user_id not in CONFIG["authorized_users"]:
-        CONFIG["authorized_users"].append(user_id)
-        save_config()
-        await update.message.reply_text(
-            f"User <b>{user_id}</b> added to authorized users.",
-            parse_mode="HTML"
-        )
+    if target_id >= 0:
+        if target_id not in CONFIG["authorized_users"]:
+            CONFIG["authorized_users"].append(target_id)
+            save_config()
+            await update.message.reply_text(
+                f"User <b>{target_id}</b> added to authorized users.",
+                parse_mode="HTML"
+            )
+        else:
+            await update.message.reply_text(
+                f"User <b>{target_id}</b> was already authorized.",
+                parse_mode="HTML"
+            )
     else:
-        await update.message.reply_text(
-            f"User <b>{user_id}</b> was already authorized.",
-            parse_mode="HTML"
-        )
+        if target_id not in CONFIG["authorized_groups"]:
+            CONFIG["authorized_groups"].append(target_id)
+            save_config()
+            await update.message.reply_text(
+                f"Group <b>{target_id}</b> added to authorized groups.",
+                parse_mode="HTML"
+            )
+        else:
+            await update.message.reply_text(
+                f"Group <b>{target_id}</b> was already authorized.",
+                parse_mode="HTML"
+            )
 
 async def revoke_user(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     if update.effective_user.username != ADMIN_USER:
@@ -652,35 +666,7 @@ async def revoke_user(update: Update, context: ContextTypes.DEFAULT_TYPE) -> Non
             parse_mode="HTML"
         )
 
-async def grant_group(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    if update.effective_user.username != ADMIN_USER:
-        await update.message.reply_text(
-            f"Only the administrator ({ADMIN_USER}) can execute this command."
-        )
-        return
-    args = update.message.text.split()
-    if len(args) < 2:
-        await update.message.reply_text("Usage: /grant_group <group_id>")
-        return
-    try:
-        group_id = int(args[1])
-    except:
-        await update.message.reply_text(
-            "Invalid ID."
-        )
-        return
-    if group_id not in CONFIG["authorized_groups"]:
-        CONFIG["authorized_groups"].append(group_id)
-        save_config()
-        await update.message.reply_text(
-            f"Group <b>{group_id}</b> added to authorized groups.",
-            parse_mode="HTML"
-        )
-    else:
-        await update.message.reply_text(
-            f"Group <b>{group_id}</b> was already authorized.",
-            parse_mode="HTML"
-        )
+    # grant_group command merged into /grant
 
 async def revoke_group(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     if update.effective_user.username != ADMIN_USER:
@@ -735,8 +721,8 @@ async def help_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
         f"<b>/server_info [ServerName]</b> - Show server details or list all if no name is provided.<br>\n"
         f"<b>/edit_server &lt;ServerName&gt; ip=... port=... user=...</b> - Edit a server's configuration.<br>\n"
         f"<b>/delete_server &lt;ServerName&gt;</b> - Delete a configured server.<br>\n"
-        f"<b>/grant_user</b> / <b>/revoke_user</b> &lt;user_id&gt; - (Admin only)<br>\n"
-        f"<b>/grant_group</b> / <b>/revoke_group</b> &lt;group_id&gt; - (Admin only)<br>\n"
+        f"<b>/grant</b> &lt;id&gt; - (Admin only). Positive for user, negative for group<br>\n"
+        f"<b>/revoke_user</b> / <b>/revoke_group</b> &lt;id&gt; - (Admin only)<br>\n"
         f"<b>/report</b> - Generate a report for the selected server.<br><br>\n"
         f"Notes:<br><br>\n"
         f"- In private chats, all messages are handled by the bot directly.<br>\n"
@@ -868,9 +854,9 @@ def main() -> None:
     scheduler.start()
 
     # Admin commands
-    application.add_handler(CommandHandler("grant_user", grant_user))
+    application.add_handler(CommandHandler("grant", grant))
     application.add_handler(CommandHandler("revoke_user", revoke_user))
-    application.add_handler(CommandHandler("grant_group", grant_group))
+    # 'grant_group' merged into 'grant', old handler removed
     application.add_handler(CommandHandler("revoke_group", revoke_group))
 
     # Server configuration commands
