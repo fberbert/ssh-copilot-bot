@@ -99,10 +99,8 @@ The project is written in Python, uses a virtual environment, depends on the lib
 - `/server_info [ServerName]` — Shows details for the specified server or all if none is specified.
 - `/edit_server <ServerName> ip=... port=... user=...` — Edits a server's configuration.
 - `/delete_server <ServerName>` — Removes a server and updates the selection if needed.
-- `/grant_user <user_id>` — (ADMIN) Grants access to an individual user.
-- `/revoke_user <user_id>` — (ADMIN) Revokes access from a user.
-- `/grant_group <group_id>` — (ADMIN) Grants access to a group.
-- `/revoke_group <group_id>` — (ADMIN) Revokes access from a group.
+- `/grant <id>` — (ADMIN) Grants access. Positive for user, negative for group.
+- `/revoke <id>` — (ADMIN) Revokes access. Positive for user, negative for group.
 
 ## Running the Bot
 

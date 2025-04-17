@@ -636,67 +636,51 @@ async def grant(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
                 parse_mode="HTML"
             )
 
-async def revoke_user(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+async def revoke(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    """Revoke access for a user or group.
+    Usage: /revoke <id> (positive for user, negative for group)"""
     if update.effective_user.username != ADMIN_USER:
         await update.message.reply_text(
-            "Only the administrator can execute this command."
+            f"Only the administrator ({ADMIN_USER}) can execute this command."
         )
         return
     args = update.message.text.split()
     if len(args) < 2:
-        await update.message.reply_text("Usage: /revoke_user <user_id>")
+        await update.message.reply_text("Usage: /revoke <id>")
         return
     try:
-        user_id = int(args[1])
+        target_id = int(args[1])
     except:
         await update.message.reply_text(
-            "Invalid ID."
+            "Invalid ID. Example: /revoke 12345 or /revoke -1001234567890"
         )
         return
-    if user_id in CONFIG["authorized_users"]:
-        CONFIG["authorized_users"].remove(user_id)
-        save_config()
-        await update.message.reply_text(
-            f"User <b>{user_id}</b> removed from authorized users.",
-            parse_mode="HTML"
-        )
+    if target_id >= 0:
+        if target_id in CONFIG["authorized_users"]:
+            CONFIG["authorized_users"].remove(target_id)
+            save_config()
+            await update.message.reply_text(
+                f"User <b>{target_id}</b> removed from authorized users.",
+                parse_mode="HTML"
+            )
+        else:
+            await update.message.reply_text(
+                f"User <b>{target_id}</b> was not in authorized users.",
+                parse_mode="HTML"
+            )
     else:
-        await update.message.reply_text(
-            f"User <b>{user_id}</b> was not in authorized users.",
-            parse_mode="HTML"
-        )
-
-    # grant_group command merged into /grant
-
-async def revoke_group(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    if update.effective_user.username != ADMIN_USER:
-        await update.message.reply_text(
-            "Only the administrator can execute this command."
-        )
-        return
-    args = update.message.text.split()
-    if len(args) < 2:
-        await update.message.reply_text("Usage: /revoke_group <group_id>")
-        return
-    try:
-        group_id = int(args[1])
-    except:
-        await update.message.reply_text(
-            "Invalid ID."
-        )
-        return
-    if group_id in CONFIG["authorized_groups"]:
-        CONFIG["authorized_groups"].remove(group_id)
-        save_config()
-        await update.message.reply_text(
-            f"Group <b>{group_id}</b> removed from authorized groups.",
-            parse_mode="HTML"
-        )
-    else:
-        await update.message.reply_text(
-            f"Group <b>{group_id}</b> was not in authorized groups.",
-            parse_mode="HTML"
-        )
+        if target_id in CONFIG["authorized_groups"]:
+            CONFIG["authorized_groups"].remove(target_id)
+            save_config()
+            await update.message.reply_text(
+                f"Group <b>{target_id}</b> removed from authorized groups.",
+                parse_mode="HTML"
+            )
+        else:
+            await update.message.reply_text(
+                f"Group <b>{target_id}</b> was not in authorized groups.",
+                parse_mode="HTML"
+            )
 
 # ================
 # General commands
@@ -722,7 +706,7 @@ async def help_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
         f"<b>/edit_server &lt;ServerName&gt; ip=... port=... user=...</b> - Edit a server's configuration.<br>\n"
         f"<b>/delete_server &lt;ServerName&gt;</b> - Delete a configured server.<br>\n"
         f"<b>/grant</b> &lt;id&gt; - (Admin only). Positive for user, negative for group<br>\n"
-        f"<b>/revoke_user</b> / <b>/revoke_group</b> &lt;id&gt; - (Admin only)<br>\n"
+        f"<b>/revoke</b> &lt;id&gt; - (Admin only). Positive for user, negative for group<br>\n"
         f"<b>/report</b> - Generate a report for the selected server.<br><br>\n"
         f"Notes:<br><br>\n"
         f"- In private chats, all messages are handled by the bot directly.<br>\n"
@@ -855,9 +839,7 @@ def main() -> None:
 
     # Admin commands
     application.add_handler(CommandHandler("grant", grant))
-    application.add_handler(CommandHandler("revoke_user", revoke_user))
-    # 'grant_group' merged into 'grant', old handler removed
-    application.add_handler(CommandHandler("revoke_group", revoke_group))
+    application.add_handler(CommandHandler("revoke", revoke))
 
     # Server configuration commands
     application.add_handler(CommandHandler("set_server", set_server_command))
