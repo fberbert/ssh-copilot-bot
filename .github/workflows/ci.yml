@@ -1,0 +1,42 @@
+name: CI
+
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+
+jobs:
+  deploy_altarede:
+    name: Deploy at Altarede via SSH
+    runs-on: ubuntu-latest
+    if: false
+    steps:
+      - name: Executar git pull no servidor remoto
+        uses: appleboy/ssh-action@v1.0.0
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          script: |
+            cd /home/fabio/projetos/tux-gpt
+            git fetch origin
+            git pull
+  deploy_two:
+    name: Deploy at Two via SSH
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/master'
+    steps:
+      - name: Executar git pull no servidor remoto
+        uses: appleboy/ssh-action@v1.0.0
+        with:
+          host: 52.35.188.239
+          username: fabio
+          port: 22133
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          script: |
+            cd /home/fabio/projetos/ssh-copilot-bot
+            git fetch origin
+            git pull
+            sudo service ssh-copilot-bot restart
+
