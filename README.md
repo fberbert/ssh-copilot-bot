@@ -142,3 +142,5 @@ Distributed under the [MIT License](LICENSE).
 ---
 
 Follow these instructions to install, configure, and operate the SSH Copilot Bot. For questions or issues, refer to logs or contact the bot administrator.
+
+Thank you.
