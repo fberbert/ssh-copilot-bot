@@ -1,0 +1,24 @@
+name: Deploy at Two via SSH
+
+on:
+  push:
+    branches: [ master ]
+
+jobs:
+  deploy_two:
+    name: Deploy at Two via SSH
+    runs-on: ubuntu-latest
+    steps:
+      - name: Executar git pull no servidor remoto
+        uses: appleboy/ssh-action@v1.0.0
+        with:
+          host: 52.35.188.239
+          username: fabio
+          port: 22133
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          strict: false
+          script: |
+            cd /home/fabio/projetos/ssh-copilot-bot
+            git fetch origin
+            git pull
+            sudo service ssh-copilot-bot restart
