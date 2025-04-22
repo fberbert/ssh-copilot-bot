@@ -16,7 +16,6 @@ jobs:
           username: fabio
           port: 22133
           key: ${{ secrets.SSH_PRIVATE_KEY }}
-          strict: false
           script: |
             cd /home/fabio/projetos/ssh-copilot-bot
             git fetch origin
