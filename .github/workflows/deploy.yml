@@ -2,7 +2,7 @@ name: Deploy at Two via SSH
 
 on:
   push:
-    branches: [ master ]
+    branches: [ main ]
 
 jobs:
   deploy_two:
