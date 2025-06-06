@@ -32,6 +32,8 @@ BOT_TOKEN = os.getenv("BOT_TOKEN")
 BOT_USERNAME = os.getenv("BOT_USERNAME")
 REPORT_CHAT_ID = os.getenv("REPORT_CHAT_ID")  # e.g. "-1001234567890"
 ADMIN_USER = os.getenv("ADMIN_USER")  # admin username
+BACKUPS_SCRIPT = os.getenv("BACKUPS_SCRIPT", "/usr/local/bin/list-backups")
+SNAPSHOTS_SCRIPT = os.getenv("SNAPSHOTS_SCRIPT", "/usr/local/bin/list-snapshots")
 
 # Project directory and configuration files
 PROJECT_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -273,8 +275,8 @@ async def generate_report(chat_id: int) -> str:
     """
     # Execute diagnostic commands on the selected server
     output_df = await async_run_command(chat_id, "df -h")
-    output_backups = await async_run_command(chat_id, "/home/fabio/bin/listar-backups")
-    output_snaps = await async_run_command(chat_id, "/home/fabio/bin/listar-snapshots")
+    output_backups = await async_run_command(chat_id, BACKUPS_SCRIPT)
+    output_snaps = await async_run_command(chat_id, SNAPSHOTS_SCRIPT)
     output_apache = await async_run_command(chat_id, "service apache2 status")
     output_mysql = await async_run_command(chat_id, "service mysql status")
 
@@ -715,7 +717,7 @@ async def help_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
         f"This is the bot's public key (<i>bot_key.pub</i>):<br><br>\n"
         f"<pre>{key_content}</pre><br>\n"
         f"Add this key to <i>~/.ssh/authorized_keys</i> on your server.<br><br>\n"
-        f"For questions, contact the bot developer on Telegram: @vivaolinux"
+        f"For questions, contact the bot developer on Telegram: @your_admin_username"
     )
     await update.message.reply_text(sanitize_html(help_text), parse_mode="HTML")
     await turn_on_talking(update, context)

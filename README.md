@@ -32,7 +32,7 @@ The project is written in Python, uses a virtual environment, depends on the lib
 - **Python:** 3.10+
 - **Dependencies:** Listed in `requirements.txt`
 - **OpenAI API Key:** Required to authenticate with the OpenAI API
-- **Telegram Bot Token:** A Telegram bot token from BotFather
+- **Telegram Bot Token:** Token for your Telegram bot (see below)
 
 ## Installation
 
@@ -57,7 +57,12 @@ The project is written in Python, uses a virtual environment, depends on the lib
    pip install -r requirements.txt
    ```
 
-5. **Configure environment variables:**
+5. **Create your Telegram bot:**
+   - Open a conversation with [@BotFather](https://t.me/BotFather) in Telegram.
+   - Send `/newbot` and follow the instructions to choose a name and username.
+   - BotFather will return a token—copy this value for the `BOT_TOKEN` variable.
+
+6. **Configure environment variables:**
    Create a `.env` file based on `env.sample`:
    ```env
    ADMIN_USER=@your_admin_username
@@ -65,9 +70,11 @@ The project is written in Python, uses a virtual environment, depends on the lib
    REPORT_CHAT_ID=your_report_chat_id
    OPENAI_API_KEY=your_openai_api_key_here
    ASSISTANT_ID=your_assistant_id_here
+   BACKUPS_SCRIPT=/usr/local/bin/list-backups
+   SNAPSHOTS_SCRIPT=/usr/local/bin/list-snapshots
    ```
 
-6. **Prepare the SSH public key file:**
+7. **Prepare the SSH public key file:**
    Generate a public key if you don't have one:
    ```bash
    ssh-keygen -t rsa -b 4096 -C "your_email@domain.com"
@@ -137,7 +144,7 @@ venv/bin/python infra-bot.py
 
 ## License
 
-Distributed under the [MIT License](LICENSE).
+Distributed under the [GNU General Public License v3.0](LICENSE).
 
 ---
 

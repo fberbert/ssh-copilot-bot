@@ -1,5 +1,5 @@
 [Unit]
-Description=Bot SSH Copilot
+Description=SSH Copilot Bot Service
 After=network.target
 
 [Service]
