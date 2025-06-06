@@ -2,10 +2,10 @@
 __pycache__/
 pubkeys
 
-# pasta do ambiente virtual
+# virtual environment folder
 venv
 
-# arquivos de configuração do bot
+# bot configuration files
 bot_state.json
 bot_key.pub
 bot_config.json
