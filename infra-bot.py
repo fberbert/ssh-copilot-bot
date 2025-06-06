@@ -22,7 +22,6 @@ from telegram.ext import (
     MessageHandler,
     filters
 )
-from apscheduler.schedulers.background import BackgroundScheduler
 
 # Load environment variables
 openai.api_key = os.getenv("OPENAI_API_KEY")
@@ -32,8 +31,6 @@ BOT_TOKEN = os.getenv("BOT_TOKEN")
 BOT_USERNAME = os.getenv("BOT_USERNAME")
 REPORT_CHAT_ID = os.getenv("REPORT_CHAT_ID")  # e.g. "-1001234567890"
 ADMIN_USER = os.getenv("ADMIN_USER")  # admin username
-BACKUPS_SCRIPT = os.getenv("BACKUPS_SCRIPT", "/usr/local/bin/list-backups")
-SNAPSHOTS_SCRIPT = os.getenv("SNAPSHOTS_SCRIPT", "/usr/local/bin/list-snapshots")
 
 # Project directory and configuration files
 PROJECT_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -265,51 +262,7 @@ async def async_run_command(chat_id: int, command: str) -> str:
     except Exception as e:
         return f"Error executing command via AsyncSSH: {e}"
 
-# ================
-# Reports
-# ================
-async def generate_report(chat_id: int) -> str:
-    """
-    Generate a concise, formatted report of server status using predefined commands.
-    Returns HTML-formatted string ready to send to Telegram.
-    """
-    # Execute diagnostic commands on the selected server
-    output_df = await async_run_command(chat_id, "df -h")
-    output_backups = await async_run_command(chat_id, BACKUPS_SCRIPT)
-    output_snaps = await async_run_command(chat_id, SNAPSHOTS_SCRIPT)
-    output_apache = await async_run_command(chat_id, "service apache2 status")
-    output_mysql = await async_run_command(chat_id, "service mysql status")
 
-    # Prepare prompt for the assistant to format the results
-    prompt = (
-        "Below are outputs of various server checks. "
-        "Format these details concisely and technically using simple HTML tags for Telegram:<br><br>"
-        "<b>Disk usage (df -h):</b><br>" + output_df + "<br><br>" +
-        "<b>Backups (AWS S3):</b><br>" + output_backups + "<br><br>" +
-        "<b>EC2 snapshots:</b><br>" + output_snaps + "<br><br>" +
-        "<b>Apache2 status:</b><br>" + output_apache + "<br><br>" +
-        "<b>MySQL status:</b><br>" + output_mysql
-    )
-    thread_id = find_or_create_thread(chat_id)
-    send_message_to_thread(thread_id, "user", prompt)
-    run_id = run_assistant(thread_id)
-    answer = poll_for_response(thread_id, run_id)
-    return answer
-
-def job_send_report(app):
-    # Schedule job to send daily server report
-    text = generate_report(REPORT_CHAT_ID)
-    logger.info("Sending daily report to chat %s", REPORT_CHAT_ID)
-    logger.info("Report content:\n%s", text)
-    app.bot.send_message(chat_id=REPORT_CHAT_ID, text=text, parse_mode="HTML")
-
-async def command_report(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    # Handle /report command: generate and send server report
-    text = await generate_report(update.effective_chat.id)
-    logger.info("Sending report to chat %s", update.effective_chat.id)
-    logger.info("Report content:\n%s", text)
-    await update.message.reply_text(sanitize_html(text), parse_mode="HTML", disable_web_page_preview=True)
-    await turn_on_talking(update, context)
 
 # ================
 # Authorization checking
@@ -708,8 +661,7 @@ async def help_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
         f"<b>/edit_server &lt;ServerName&gt; ip=... port=... user=...</b> - Edit a server's configuration.<br>\n"
         f"<b>/delete_server &lt;ServerName&gt;</b> - Delete a configured server.<br>\n"
         f"<b>/grant</b> &lt;id&gt; - (Admin only). Positive for user, negative for group<br>\n"
-        f"<b>/revoke</b> &lt;id&gt; - (Admin only). Positive for user, negative for group<br>\n"
-        f"<b>/report</b> - Generate a report for the selected server.<br><br>\n"
+        f"<b>/revoke</b> &lt;id&gt; - (Admin only). Positive for user, negative for group<br><br>\n"
         f"Notes:<br><br>\n"
         f"- In private chats, all messages are handled by the bot directly.<br>\n"
         f"- In groups, mention the bot (@{BOT_USERNAME}) or include 'ssh-copilot-bot' to initiate a conversation.<br>\n"
@@ -834,10 +786,6 @@ def main() -> None:
         .build()
     )
 
-    # Schedule daily report job (05:07 AM)
-    scheduler = BackgroundScheduler()
-    scheduler.add_job(job_send_report, "cron", hour=5, minute=7, args=[application])
-    scheduler.start()
 
     # Admin commands
     application.add_handler(CommandHandler("grant", grant))
@@ -853,7 +801,6 @@ def main() -> None:
     # Other commands
     application.add_handler(CommandHandler("server_info", server_info_command))
     application.add_handler(CommandHandler("help", help_command))
-    application.add_handler(CommandHandler("report", command_report))
     application.add_handler(CommandHandler("start", help_command))
 
     # Handlers for messages:
