@@ -27,7 +27,7 @@ The project is written in Python, uses a virtual environment, depends on the lib
 - Configuration and authorization commands for granular access control.
 - Support for multiple servers per chat, with active selection.
 
-![SSH Copilot Bot Screenshot](https://user-images.githubusercontent.com/123456789/169123456/ssh-copilot-bot-screen.png)
+![SSH Copilot Bot Screenshot](img/ssh-copilot-bot.gif)
 
 
 ## Requirements
