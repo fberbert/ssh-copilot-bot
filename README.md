@@ -154,6 +154,6 @@ Distributed under the [GNU General Public License v3.0](LICENSE).
 Follow these instructions to install, configure, and operate the SSH Copilot Bot. For questions or issues, refer to logs or contact the bot administrator.
 
 
-## Contact Us
+## Contact
 
 If you need support, have suggestions, or would like to hire me, please contact me at: [fberbert@gmail.com](mailto:fberbert@gmail.com)
