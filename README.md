@@ -27,7 +27,9 @@ The project is written in Python, uses a virtual environment, depends on the lib
 - Configuration and authorization commands for granular access control.
 - Support for multiple servers per chat, with active selection.
 
-![SSH Copilot Bot Screenshot](img/ssh-copilot-bot.gif)
+<p align="center">
+  <img src="img/ssh-copilot-bot.gif" alt="SSH Copilot Bot Screenshot" />
+</p>
 
 
 ## Requirements
@@ -151,4 +153,7 @@ Distributed under the [GNU General Public License v3.0](LICENSE).
 
 Follow these instructions to install, configure, and operate the SSH Copilot Bot. For questions or issues, refer to logs or contact the bot administrator.
 
-Thank you.
+
+## Contact Us
+
+If you need support, have suggestions, or would like to hire me, please contact me at: [fberbert@gmail.com](mailto:fberbert@gmail.com)
