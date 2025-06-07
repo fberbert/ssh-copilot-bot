@@ -17,7 +17,7 @@ jobs:
           port: ${{ secrets.SSH_PORT }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           script: |
-            cd /opt/ssh-copilot-bot
+            cd /home/fabio/projetos/ssh-copilot-bot
             git fetch origin
             git pull
             sudo service ssh-copilot-bot restart

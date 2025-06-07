@@ -1,3 +1,21 @@
+# ================
+# Thread management commands
+# ================
+async def delete_thread_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    """
+    Delete the current OpenAI thread for this chat and start a new fresh thread.
+    """
+    chat_id = update.effective_chat.id
+    cid_str = str(chat_id)
+    if cid_str in DATA["threads"]:
+        del DATA["threads"][cid_str]
+        save_state()
+    new_thread_id = find_or_create_thread(chat_id)
+    await update.message.reply_text(
+        f"Current conversation thread has been deleted and a new fresh thread started.\n"
+        f"Use this command when your thread grows too large and consumes many tokens."
+    )
+
 #!/usr/bin/env python3
 
 import logging
@@ -661,7 +679,8 @@ async def help_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
         f"<b>/edit_server &lt;ServerName&gt; ip=... port=... user=...</b> - Edit a server's configuration.<br>\n"
         f"<b>/delete_server &lt;ServerName&gt;</b> - Delete a configured server.<br>\n"
         f"<b>/grant</b> &lt;id&gt; - (Admin only). Positive for user, negative for group<br>\n"
-        f"<b>/revoke</b> &lt;id&gt; - (Admin only). Positive for user, negative for group<br><br>\n"
+        f"<b>/revoke</b> &lt;id&gt; - (Admin only). Positive for user, negative for group<br>\n"
+        f"<b>/delete_thread</b> - Delete the current conversation thread and start a new fresh one.<br><br>\n"
         f"Notes:<br><br>\n"
         f"- In private chats, all messages are handled by the bot directly.<br>\n"
         f"- In groups, mention the bot (@{BOT_USERNAME}) or include 'ssh-copilot-bot' to initiate a conversation.<br>\n"
@@ -802,6 +821,9 @@ def main() -> None:
     application.add_handler(CommandHandler("server_info", server_info_command))
     application.add_handler(CommandHandler("help", help_command))
     application.add_handler(CommandHandler("start", help_command))
+
+    # Thread management commands
+    application.add_handler(CommandHandler("delete_thread", delete_thread_command))
 
     # Handlers for messages:
     # 1) Private chats: any message goes to private_message_handler

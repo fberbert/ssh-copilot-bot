@@ -110,7 +110,8 @@ The project is written in Python, uses a virtual environment, depends on the lib
 - `/edit_server <ServerName> ip=... port=... user=...` — Edits a server's configuration.
 - `/delete_server <ServerName>` — Removes a server and updates the selection if needed.
 - `/grant <id>` — (ADMIN) Grants access. Positive for user, negative for group.
-- `/revoke <id>` — (ADMIN) Revokes access. Positive for user, negative for group.
+
+- `/delete_thread` — Delete the current conversation thread and start a new fresh one. Useful when your thread grows large and consumes many tokens.
 
 ## Running the Bot
 
