@@ -1,21 +1,3 @@
-# ================
-# Thread management commands
-# ================
-async def delete_thread_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    """
-    Delete the current OpenAI thread for this chat and start a new fresh thread.
-    """
-    chat_id = update.effective_chat.id
-    cid_str = str(chat_id)
-    if cid_str in DATA["threads"]:
-        del DATA["threads"][cid_str]
-        save_state()
-    new_thread_id = find_or_create_thread(chat_id)
-    await update.message.reply_text(
-        f"Current conversation thread has been deleted and a new fresh thread started.\n"
-        f"Use this command when your thread grows too large and consumes many tokens."
-    )
-
 #!/usr/bin/env python3
 
 import logging
@@ -692,6 +674,25 @@ async def help_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
     )
     await update.message.reply_text(sanitize_html(help_text), parse_mode="HTML")
     await turn_on_talking(update, context)
+
+# ================
+# Thread management commands
+# ================
+async def delete_thread_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    """
+    Delete the current OpenAI thread for this chat and start a new fresh thread.
+    """
+    chat_id = update.effective_chat.id
+    cid_str = str(chat_id)
+    if cid_str in DATA["threads"]:
+        del DATA["threads"][cid_str]
+        save_state()
+    new_thread_id = find_or_create_thread(chat_id)
+    await update.message.reply_text(
+        f"Current conversation thread has been deleted and a new fresh thread started.\n"
+        f"Use this command when your thread grows too large and consumes many tokens."
+    )
+
 
 async def talk(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """
