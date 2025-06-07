@@ -17,6 +17,7 @@ The project is written in Python, uses a virtual environment, depends on the lib
 - [Customization](#customization)
 - [License](#license)
 
+
 ## Features
 
 - Integration with the OpenAI Threads API to maintain contextual dialogues.
@@ -25,6 +26,9 @@ The project is written in Python, uses a virtual environment, depends on the lib
 - State persistence (threads and conversation mode) in JSON files.
 - Configuration and authorization commands for granular access control.
 - Support for multiple servers per chat, with active selection.
+
+![SSH Copilot Bot Screenshot](https://user-images.githubusercontent.com/123456789/169123456/ssh-copilot-bot-screen.png)
+
 
 ## Requirements
 
