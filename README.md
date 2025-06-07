@@ -74,8 +74,6 @@ The project is written in Python, uses a virtual environment, depends on the lib
    REPORT_CHAT_ID=your_report_chat_id
    OPENAI_API_KEY=your_openai_api_key_here
    ASSISTANT_ID=your_assistant_id_here
-   BACKUPS_SCRIPT=/usr/local/bin/list-backups
-   SNAPSHOTS_SCRIPT=/usr/local/bin/list-snapshots
    ```
 
 7. **Prepare the SSH public key file:**
@@ -103,7 +101,6 @@ The project is written in Python, uses a virtual environment, depends on the lib
 
 - `/help` — Displays general help.
 - `/start` — Alias for `/help`.
-- `/report` — Generates a full report for the selected server.
 - `/set_server` — Adds a new server to the chat (name, IP, port, user).
 - `/list_servers` — Lists all configured servers and marks the selected one.
 - `/select_server <ServerName>` — Selects which server to use.
